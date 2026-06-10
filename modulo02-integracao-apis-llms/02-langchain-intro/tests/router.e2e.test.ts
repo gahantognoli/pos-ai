@@ -17,4 +17,33 @@ test("make upper transforms message into UPPERCASE", async () => {
   assert.equal(response.body, expected);
 });
 
+test("make lower transforms message into lowercase", async () => {
+  const app = createServer();
+  const msg = 'MAKE THIS MESSAGE LOWER PLEASE!';
+  const expected = msg.toLowerCase();
+  const response = await app.inject({
+    method: "POST",
+    url: "/chat",
+    payload: {
+      question: msg,
+    },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body, expected);
+});
+
+test("make unknown command returns fallback message", async () => {
+  const app = createServer();
+  const msg = 'MAKE THIS MESSAGE UNKNOWN PLEASE!';
+  const expected = "Unknown command. Please use 'upper' or 'lower' in your input.";
+  const response = await app.inject({
+    method: "POST",
+    url: "/chat",
+    payload: {
+      question: msg,
+    },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body, expected);
+});
 

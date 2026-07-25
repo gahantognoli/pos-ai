@@ -1,8 +1,9 @@
-import { ChatOpenAI } from '@langchain/openai';
-import { config } from '../config.ts';
-import { SystemMessage, HumanMessage } from '@langchain/core/messages';
-import type { z } from 'zod/v3';
-import { createAgent, providerStrategy } from 'langchain';
+import { ChatOpenAI } from "@langchain/openai";
+import { config } from "../config.ts";
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import type { z } from "zod/v3";
+import { createAgent, providerStrategy } from "langchain";
+import { type QueryAnalysisData } from "../prompts/v1/queryAnalyzer.ts";
 
 export type LLMResponse = {
   model: string;
@@ -18,10 +19,10 @@ export class OpenRouterService {
       modelName: config.models[0],
       temperature: config.temperature,
       configuration: {
-        baseURL: 'https://openrouter.ai/api/v1',
+        baseURL: "https://openrouter.ai/api/v1",
         defaultHeaders: {
-          'HTTP-Referer': config.httpReferer,
-          'X-Title': config.xTitle,
+          "HTTP-Referer": config.httpReferer,
+          "X-Title": config.xTitle,
         },
       },
 
@@ -34,17 +35,16 @@ export class OpenRouterService {
   }
 
   async generateStructured<T>(
-    userPrompt: string,
     systemPrompt: string,
+    userPrompt: string,
     schema: z.ZodSchema<T>,
   ) {
     try {
-
       const agent = createAgent({
         model: this.llmClient,
         tools: [],
         responseFormat: providerStrategy(schema),
-      })
+      });
 
       const messages = [
         new SystemMessage(systemPrompt),
@@ -54,12 +54,12 @@ export class OpenRouterService {
       const data = await agent.invoke({ messages });
       return {
         success: true,
-        data: data.structuredResponse,
-      }
+        data: data.structuredResponse as T,
+      };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
